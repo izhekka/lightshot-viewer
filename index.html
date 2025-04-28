@@ -1,1 +1,171 @@
-<h1>Hello</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightshot Viewer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .image-container {
+            aspect-ratio: 16/9;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .image-container:hover {
+            transform: translateY(-2px);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-container .link {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px;
+            font-size: 12px;
+            text-align: center;
+            text-decoration: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .image-container:hover .link {
+            opacity: 1;
+        }
+
+        .reload-button {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .reload-button:hover {
+            background-color: #0056b3;
+        }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="image-grid" id="imageGrid"></div>
+    <button class="reload-button" id="reloadButton">Reload Images</button>
+
+    <script>
+        function generateHash() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let hash = '';
+            for (let i = 0; i < 6; i++) {
+                hash += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return hash;
+        }
+
+        function createImageContainer(hash, imageUrl) {
+            const container = document.createElement('div');
+            container.className = 'image-container';
+
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Screenshot';
+
+            const link = document.createElement('a');
+            link.href = `https://prnt.sc/${hash}`;
+            link.className = 'link';
+            link.textContent = `prnt.sc/${hash}`;
+            link.target = '_blank';
+
+            container.appendChild(img);
+            container.appendChild(link);
+            return container;
+        }
+
+        async function fetchImageUrl(hash) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/image/${hash}`);
+                if (!response.ok) {
+                    return null;
+                }
+                const data = await response.json();
+                return data.imageUrl;
+            } catch (error) {
+                console.error('Error fetching image:', error);
+                return null;
+            }
+        }
+
+        async function loadImages() {
+            const imageGrid = document.getElementById('imageGrid');
+            const reloadButton = document.getElementById('reloadButton');
+
+            // Clear existing images
+            imageGrid.innerHTML = '';
+            reloadButton.classList.add('loading');
+            reloadButton.textContent = 'Loading...';
+
+            let validImages = 0;
+            const maxAttempts = 50;
+            let attempts = 0;
+
+            while (validImages < 12 && attempts < maxAttempts) {
+                attempts++;
+                const hash = generateHash();
+                const imageUrl = await fetchImageUrl(hash);
+
+                if (imageUrl) {
+                    const container = createImageContainer(hash, imageUrl);
+                    imageGrid.appendChild(container);
+                    validImages++;
+                }
+            }
+
+            reloadButton.classList.remove('loading');
+            reloadButton.textContent = 'Reload Images';
+        }
+
+        // Initial load
+        loadImages();
+
+        // Add click handler for reload button
+        document.getElementById('reloadButton').addEventListener('click', loadImages);
+    </script>
+</body>
+</html>

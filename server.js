@@ -19,7 +19,7 @@ async function checkImageUrl(url) {
 
 app.get('/api/image/:hash', async (req, res) => {
     try {
-        console.log('Fetching image for hash:', req.params.hash);
+        console.debug('Fetching image for hash:', req.params.hash);
 
         const { hash } = req.params;
         const response = await axios.get(`https://prnt.sc/${hash}`);

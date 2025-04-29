@@ -90,6 +90,9 @@
     <button class="reload-button" id="reloadButton">Reload Images</button>
 
     <script>
+        // Get the current host from the browser URL
+        const apiBaseUrl = window.location.origin;
+
         function generateHash() {
             const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
             let hash = '';
@@ -120,7 +123,7 @@
 
         async function fetchImageUrl(hash) {
             try {
-                const response = await fetch(`http://localhost:3000/api/image/${hash}`);
+                const response = await fetch(`${apiBaseUrl}/api/image/${hash}`);
                 if (!response.ok) {
                     return null;
                 }

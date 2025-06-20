@@ -29,7 +29,11 @@ async function getImageUrlFromDb(hash) {
 }
 
 async function insertImageUrl(hash, url) {
-  await pool.query('INSERT INTO images (hash, url, is_active) VALUES ($1, $2, $3)', [hash, url, !!url]);
+  try {
+    await pool.query('INSERT INTO images (hash, url, is_active) VALUES ($1, $2, $3)', [hash, url, !!url]);
+  } catch (error) {
+    console.error('Error inserting image URL into DB:', error.message);
+  }
 }
 
 async function checkImageUrl(url) {
